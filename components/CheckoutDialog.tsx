@@ -20,14 +20,12 @@ interface CheckoutDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type Step = "verify" | "pickup" | "incorrect" | "done";
-
 export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProps) {
   const { getAttendance, checkOut } = useAppStore();
   const attendance = getAttendance(child.id);
-  const [step, setStep] = useState<Step>("verify");
   const [pickedUpBy, setPickedUpBy] = useState<"Mutter" | "Vater" | "Andere" | null>(null);
   const [otherName, setOtherName] = useState("");
+  const [codeOk, setCodeOk] = useState<boolean | null>(null);
 
   const codeColor = attendance?.codeColor
     ? CODE_COLORS.find((c) => c.key === attendance.codeColor)
@@ -35,9 +33,9 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
   const figureLabel = FIGURE_LABELS[child.figure];
 
   const handleReset = () => {
-    setStep("verify");
     setPickedUpBy(null);
     setOtherName("");
+    setCodeOk(null);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -46,10 +44,10 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
   };
 
   const handleCheckout = () => {
-    if (!pickedUpBy) return;
+    if (!pickedUpBy || codeOk !== true) return;
     if (pickedUpBy === "Andere" && !otherName.trim()) return;
     checkOut(child.id, pickedUpBy, otherName.trim() || null, true);
-    setStep("done");
+    handleOpenChange(false);
   };
 
   return (
@@ -62,84 +60,8 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
           </SheetTitle>
         </SheetHeader>
 
-        {/* Step: Verify code */}
-        {step === "verify" && codeColor && (
-          <div className="text-center py-6 space-y-6">
-            <div
-              className="w-24 h-24 mx-auto rounded-3xl flex items-center justify-center"
-              style={{ backgroundColor: `${codeColor.hex}15` }}
-            >
-              <OrigamiIcon figure={child.figure} color={codeColor.hex} size={56} />
-            </div>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold text-navy">
-                {codeColor.label}er {figureLabel}
-              </p>
-              <p className="text-sm text-grau">
-                Stimmt der genannte Code überein?
-              </p>
-            </div>
-            <div className="flex gap-3 justify-center">
-              <Button
-                onClick={() => setStep("pickup")}
-                className="bg-gruen hover:bg-gruen/90 text-white font-semibold rounded-xl h-12 px-6"
-              >
-                Code korrekt
-              </Button>
-              <Button
-                onClick={() => setStep("incorrect")}
-                variant="outline"
-                className="border-rot/30 text-rot hover:bg-rot/5 rounded-xl h-12 px-6"
-              >
-                Code falsch
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Step: Pick up person */}
-        {step === "pickup" && (
-          <div className="py-4 space-y-5">
-            <p className="text-center text-navy font-medium">
-              Wer holt {child.firstName} ab?
-            </p>
-            <div className="flex gap-2 justify-center">
-              {(["Mutter", "Vater", "Andere"] as const).map((type) => (
-                <Button
-                  key={type}
-                  onClick={() => setPickedUpBy(type)}
-                  variant={pickedUpBy === type ? "default" : "outline"}
-                  className={
-                    pickedUpBy === type
-                      ? "bg-navy text-white rounded-xl h-12"
-                      : "rounded-xl h-12"
-                  }
-                >
-                  {type}
-                </Button>
-              ))}
-            </div>
-            {pickedUpBy === "Andere" && (
-              <Input
-                placeholder="Name der Abholperson"
-                value={otherName}
-                onChange={(e) => setOtherName(e.target.value)}
-                className="rounded-xl h-12"
-                autoFocus
-              />
-            )}
-            <Button
-              onClick={handleCheckout}
-              disabled={!pickedUpBy || (pickedUpBy === "Andere" && !otherName.trim())}
-              className="w-full bg-gruen hover:bg-gruen/90 text-white font-semibold rounded-xl h-12"
-            >
-              Auschecken
-            </Button>
-          </div>
-        )}
-
-        {/* Step: Incorrect code */}
-        {step === "incorrect" && (
+        {/* Code incorrect warning */}
+        {codeOk === false ? (
           <div className="text-center py-6 space-y-5">
             <div className="w-16 h-16 mx-auto bg-rot/10 rounded-full flex items-center justify-center">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#E74C3C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -152,7 +74,7 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
                 Code stimmt nicht überein
               </p>
               <p className="text-sm text-grau">
-                Das Kind kann ohne korrekten Code nicht ausgecheckt werden. Kontaktiere die Eltern im Chat.
+                Das Kind kann ohne korrekten Code nicht ausgecheckt werden.
               </p>
             </div>
             <div className="flex gap-3 justify-center">
@@ -174,30 +96,85 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
               </Button>
             </div>
           </div>
-        )}
+        ) : (
+          /* Combined: code verify + pickup person */
+          <div className="py-4 space-y-5">
+            {/* Code display + verify */}
+            {codeColor && (
+              <div className="flex items-center gap-4 bg-creme rounded-2xl p-4">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: `${codeColor.hex}15` }}
+                >
+                  <OrigamiIcon figure={child.figure} color={codeColor.hex} size={40} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-lg font-bold text-navy">
+                    {codeColor.label}er {figureLabel}
+                  </p>
+                  <p className="text-xs text-grau">Code korrekt?</p>
+                </div>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => setCodeOk(true)}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                      codeOk === true ? "bg-gruen text-white" : "bg-gruen/10 text-gruen hover:bg-gruen/20"
+                    }`}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setCodeOk(false)}
+                    className="w-10 h-10 rounded-xl bg-rot/10 text-rot hover:bg-rot/20 flex items-center justify-center transition-colors"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
 
-        {/* Step: Done */}
-        {step === "done" && (
-          <div className="text-center py-6 space-y-5">
-            <div className="w-16 h-16 mx-auto bg-gruen/10 rounded-full flex items-center justify-center">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3FA46A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+            {/* Pickup person */}
+            <div>
+              <p className="text-sm font-medium text-navy mb-2">Abgeholt von</p>
+              <div className="flex gap-2">
+                {(["Mutter", "Vater", "Andere"] as const).map((type) => (
+                  <Button
+                    key={type}
+                    onClick={() => setPickedUpBy(type)}
+                    variant={pickedUpBy === type ? "default" : "outline"}
+                    className={
+                      pickedUpBy === type
+                        ? "bg-navy text-white rounded-xl h-11"
+                        : "rounded-xl h-11"
+                    }
+                  >
+                    {type}
+                  </Button>
+                ))}
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-lg font-bold text-navy">
-                {child.firstName} ist ausgecheckt
-              </p>
-              <p className="text-sm text-grau">
-                Abgeholt von {pickedUpBy}
-                {pickedUpBy === "Andere" && otherName ? ` (${otherName})` : ""}
-              </p>
-            </div>
+
+            {pickedUpBy === "Andere" && (
+              <Input
+                placeholder="Name der Abholperson"
+                value={otherName}
+                onChange={(e) => setOtherName(e.target.value)}
+                className="rounded-xl h-12"
+                autoFocus
+              />
+            )}
+
             <Button
-              onClick={() => handleOpenChange(false)}
-              className="bg-navy hover:bg-navy/90 text-white rounded-xl h-12 px-8"
+              onClick={handleCheckout}
+              disabled={codeOk !== true || !pickedUpBy || (pickedUpBy === "Andere" && !otherName.trim())}
+              className="w-full bg-gruen hover:bg-gruen/90 text-white font-semibold rounded-xl h-12"
             >
-              Fertig
+              Auschecken
             </Button>
           </div>
         )}
