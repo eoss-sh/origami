@@ -223,7 +223,7 @@ export function KindKarte({ child, isSelected, onSelect, onCheckin, onCheckout, 
                 ? "text-gruen"
                 : "text-grau hover:text-gelb"
             )}
-            aria-label={checkedIn ? "Anwesend" : "Einchecken"}
+            aria-label={checkedIn ? "Check-out" : "Check-in"}
           >
             <div className={cn(
               "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
@@ -232,26 +232,7 @@ export function KindKarte({ child, isSelected, onSelect, onCheckin, onCheckout, 
                 : "bg-gray-100 hover:bg-gelb/10 scale-100 hover:scale-105"
             )}>
             <div className="relative w-6 h-6">
-              {/* Checkmark (checked in) */}
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={cn(
-                  "absolute inset-0 transition-all duration-300",
-                  checkedIn
-                    ? "opacity-100 rotate-0 scale-100"
-                    : "opacity-0 -rotate-90 scale-50"
-                )}
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              {/* Arrow in (not checked in) */}
+              {/* Arrow out (checked in → action: check out) */}
               <svg
                 width="24"
                 height="24"
@@ -264,7 +245,28 @@ export function KindKarte({ child, isSelected, onSelect, onCheckin, onCheckout, 
                 className={cn(
                   "absolute inset-0 transition-all duration-300",
                   checkedIn
-                    ? "opacity-0 rotate-90 scale-50"
+                    ? "opacity-100 rotate-0 scale-100"
+                    : "opacity-0 rotate-90 scale-50"
+                )}
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              {/* Arrow in (not checked in → action: check in) */}
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={cn(
+                  "absolute inset-0 transition-all duration-300",
+                  checkedIn
+                    ? "opacity-0 -rotate-90 scale-50"
                     : "opacity-100 rotate-0 scale-100"
                 )}
               >
@@ -275,7 +277,7 @@ export function KindKarte({ child, isSelected, onSelect, onCheckin, onCheckout, 
             </div>
             </div>
             <span className="text-[9px] font-medium leading-none">
-              {checkedIn ? "Da" : "Anmelden"}
+              {checkedIn ? "Check-out" : "Check-in"}
             </span>
           </button>
         </div>

@@ -10,6 +10,7 @@ import { CheckinDialog } from "@/components/CheckinDialog";
 import { KrankmeldungDialog } from "@/components/KrankmeldungDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn, formatTime, calculateAge } from "@/lib/utils";
 
 export default function KindDetailPage({
@@ -33,6 +34,7 @@ export default function KindDetailPage({
   const [checkinOpen, setCheckinOpen] = useState(false);
   const [checkinCode, setCheckinCode] = useState<{ colorLabel: string; figureLabel: string } | null>(null);
   const [sickOpen, setSickOpen] = useState(false);
+  const [callInfo, setCallInfo] = useState<{ name: string; phone: string } | null>(null);
 
   if (!child) {
     return (
@@ -346,11 +348,31 @@ export default function KindDetailPage({
               {child.guardians.map((g) => (
                 <div
                   key={g.id}
-                  className="bg-white rounded-2xl px-4 py-3 shadow-sm flex items-center justify-between"
+                  className="bg-white rounded-2xl px-4 py-3 shadow-sm flex items-center gap-3"
                 >
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-navy">{g.name}</p>
                     <p className="text-xs text-grau">{g.relation} · {g.phone}</p>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      onClick={() => setCallInfo({ name: g.name, phone: g.phone })}
+                      className="w-8 h-8 rounded-lg bg-gruen/10 flex items-center justify-center text-gruen hover:bg-gruen/20 transition-colors"
+                      aria-label={`${g.name} anrufen`}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                    </button>
+                    <Link
+                      href={`/kind/${child.id}/chat`}
+                      className="w-8 h-8 rounded-lg bg-blau/10 flex items-center justify-center text-blau hover:bg-blau/20 transition-colors"
+                      aria-label={`${g.name} Nachricht senden`}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      </svg>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -379,6 +401,38 @@ export default function KindDetailPage({
           onOpenChange={setCheckinOpen}
         />
       )}
+
+      {/* Anruf-Simulation */}
+      <Sheet open={callInfo !== null} onOpenChange={(open) => !open && setCallInfo(null)}>
+        <SheetContent side="bottom" className="rounded-t-3xl bg-white border-none shadow-lg px-6 pb-8">
+          <SheetHeader className="p-0 pt-2 pb-0">
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+            <SheetTitle className="text-xl font-bold text-navy text-center">
+              Anruf
+            </SheetTitle>
+          </SheetHeader>
+          {callInfo && (
+            <div className="text-center py-6 space-y-4">
+              <div className="w-16 h-16 mx-auto bg-gruen/10 rounded-full flex items-center justify-center">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3FA46A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-navy">{callInfo.name}</p>
+                <p className="text-sm text-grau">{callInfo.phone}</p>
+              </div>
+              <p className="text-sm text-gruen font-medium">Anruf wird gestartet...</p>
+              <Button
+                onClick={() => setCallInfo(null)}
+                className="bg-rot hover:bg-rot/90 text-white font-semibold rounded-xl h-12 px-8"
+              >
+                Auflegen
+              </Button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

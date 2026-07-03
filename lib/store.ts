@@ -54,6 +54,10 @@ interface AppState {
     codeVerified: boolean
   ) => void;
 
+  // Allergies
+  addAllergy: (childId: string, label: string, severity: "mild" | "schwer") => void;
+  removeAllergy: (childId: string, allergyId: string) => void;
+
   // Incidents
   addSickReport: (
     childId: string,
@@ -187,6 +191,26 @@ export const useAppStore = create<AppState>((set, get) => ({
         i.childId === childId && i.status !== "closed"
           ? { ...i, status: "closed" as const, closedAt: now() }
           : i
+      ),
+    }));
+  },
+
+  addAllergy: (childId, label, severity) => {
+    set((s) => ({
+      children: s.children.map((c) =>
+        c.id === childId
+          ? { ...c, allergies: [...c.allergies, { id: `allergy-${Math.random().toString(36).substring(2, 9)}`, label, severity }] }
+          : c
+      ),
+    }));
+  },
+
+  removeAllergy: (childId, allergyId) => {
+    set((s) => ({
+      children: s.children.map((c) =>
+        c.id === childId
+          ? { ...c, allergies: c.allergies.filter((a) => a.id !== allergyId) }
+          : c
       ),
     }));
   },

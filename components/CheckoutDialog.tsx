@@ -20,12 +20,12 @@ interface CheckoutDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type Step = "ask" | "verify" | "correct" | "incorrect" | "done";
+type Step = "verify" | "pickup" | "incorrect" | "done";
 
 export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProps) {
   const { getAttendance, checkOut } = useAppStore();
   const attendance = getAttendance(child.id);
-  const [step, setStep] = useState<Step>("ask");
+  const [step, setStep] = useState<Step>("verify");
   const [pickedUpBy, setPickedUpBy] = useState<"Mutter" | "Vater" | "Andere" | null>(null);
   const [otherName, setOtherName] = useState("");
 
@@ -35,7 +35,7 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
   const figureLabel = FIGURE_LABELS[child.figure];
 
   const handleReset = () => {
-    setStep("ask");
+    setStep("verify");
     setPickedUpBy(null);
     setOtherName("");
   };
@@ -62,29 +62,6 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
           </SheetTitle>
         </SheetHeader>
 
-        {/* Step: Ask for code first */}
-        {step === "ask" && (
-          <div className="text-center py-6 space-y-6">
-            <div className="w-20 h-20 mx-auto bg-gelb/10 rounded-3xl flex items-center justify-center">
-              <OrigamiIcon figure={child.figure} color="#8A8F98" size={48} />
-            </div>
-            <div className="space-y-2">
-              <p className="text-lg font-medium text-navy">
-                Frage zuerst nach dem Codewort.
-              </p>
-              <p className="text-sm text-grau">
-                Bitte die Abholperson, dir den heutigen Abholcode zu nennen, bevor du ihn hier anzeigst.
-              </p>
-            </div>
-            <Button
-              onClick={() => setStep("verify")}
-              className="bg-gelb hover:bg-gelb/90 text-navy font-semibold rounded-xl h-12 px-8"
-            >
-              Code anzeigen
-            </Button>
-          </div>
-        )}
-
         {/* Step: Verify code */}
         {step === "verify" && codeColor && (
           <div className="text-center py-6 space-y-6">
@@ -104,7 +81,7 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
             </div>
             <div className="flex gap-3 justify-center">
               <Button
-                onClick={() => setStep("correct")}
+                onClick={() => setStep("pickup")}
                 className="bg-gruen hover:bg-gruen/90 text-white font-semibold rounded-xl h-12 px-6"
               >
                 Code korrekt
@@ -120,8 +97,8 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
           </div>
         )}
 
-        {/* Step: Correct – pick up person */}
-        {step === "correct" && (
+        {/* Step: Pick up person */}
+        {step === "pickup" && (
           <div className="py-4 space-y-5">
             <p className="text-center text-navy font-medium">
               Wer holt {child.firstName} ab?

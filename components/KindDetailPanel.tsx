@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import type { Child } from "@/types";
 import { CODE_COLORS, FIGURE_LABELS } from "@/types";
@@ -7,6 +8,7 @@ import { useAppStore } from "@/lib/store";
 import { OrigamiIcon } from "./OrigamiIcon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn, formatTime, calculateAge } from "@/lib/utils";
 
 interface KindDetailPanelProps {
@@ -15,11 +17,18 @@ interface KindDetailPanelProps {
   onCheckin?: (child: Child, result: { colorLabel: string; figureLabel: string }) => void;
   onCheckout?: (child: Child) => void;
   onSick?: (child: Child) => void;
+  onAllergies?: (child: Child) => void;
   pinned?: boolean;
   onTogglePin?: () => void;
+  variant?: "default" | "inverted";
 }
 
-export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick, pinned, onTogglePin }: KindDetailPanelProps) {
+export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick, onAllergies, pinned, onTogglePin, variant = "default" }: KindDetailPanelProps) {
+  const inv = variant === "inverted";
+  const cardBg = inv ? "bg-creme" : "bg-white";
+  const cardShadow = inv ? "" : "shadow-sm";
+  const journalBg = inv ? "bg-creme" : "bg-white";
+  const headerBg = inv ? "bg-transparent" : "bg-white";
   const {
     getAttendance,
     isCheckedIn,
@@ -47,6 +56,8 @@ export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick,
   const openPickup = incidents.find(
     (i) => i.type === "pickup_request" && i.status !== "closed"
   );
+
+  const [callInfo, setCallInfo] = useState<{ name: string; phone: string } | null>(null);
 
   const handleCheckin = () => {
     const result = checkIn(child.id);
@@ -90,7 +101,7 @@ export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick,
       )}
 
       {/* Header */}
-      <div className="bg-white rounded-b-3xl p-5 pt-2 shadow-sm">
+      <div className={cn(headerBg, "p-5 pt-2", inv ? "border-b border-gray-100" : "rounded-b-3xl shadow-sm")}>
         <div className="flex items-start gap-4">
           <div className="relative shrink-0">
             <div
@@ -209,11 +220,11 @@ export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick,
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-2 px-5 mt-4">
+      <div className="grid grid-cols-4 gap-2 px-5 mt-4">
         <Button
           onClick={() => onSick?.(child)}
           variant="outline"
-          className="h-auto py-3 rounded-2xl bg-white border-none shadow-sm hover:shadow-md flex flex-col items-center gap-1.5"
+          className={cn("h-auto py-3 rounded-2xl border-none hover:shadow-md flex flex-col items-center gap-1.5", cardBg, cardShadow)}
         >
           <div className="w-9 h-9 bg-rot/10 rounded-xl flex items-center justify-center">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E74C3C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -230,7 +241,7 @@ export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick,
         >
           <Button
             variant="outline"
-            className="h-auto py-3 rounded-2xl bg-white border-none shadow-sm hover:shadow-md flex flex-col items-center gap-1.5 w-full relative"
+            className={cn("h-auto py-3 rounded-2xl border-none hover:shadow-md flex flex-col items-center gap-1.5 w-full relative", cardBg, cardShadow)}
           >
             <div className="w-9 h-9 bg-blau/10 rounded-xl flex items-center justify-center">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3498DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -246,11 +257,31 @@ export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick,
           </Button>
         </Link>
 
+        <Button
+          onClick={() => onAllergies?.(child)}
+          variant="outline"
+          className={cn("h-auto py-3 rounded-2xl border-none hover:shadow-md flex flex-col items-center gap-1.5 relative", cardBg, cardShadow)}
+        >
+          <div className="w-9 h-9 bg-orange/10 rounded-xl flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E67E22" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <span className="text-[11px] font-medium text-navy">Allergien</span>
+          {child.allergies.length > 0 && (
+            <div className="absolute top-1.5 right-1.5 w-4 h-4 bg-orange rounded-full flex items-center justify-center">
+              <span className="text-[9px] font-bold text-white">{child.allergies.length}</span>
+            </div>
+          )}
+        </Button>
+
         {checkedIn ? (
           <Button
             onClick={() => onCheckout?.(child)}
             variant="outline"
-            className="h-auto py-3 rounded-2xl bg-white border-none shadow-sm hover:shadow-md flex flex-col items-center gap-1.5"
+            className={cn("h-auto py-3 rounded-2xl border-none hover:shadow-md flex flex-col items-center gap-1.5", cardBg, cardShadow)}
           >
             <div className="w-9 h-9 bg-gruen/10 rounded-xl flex items-center justify-center">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3FA46A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -265,7 +296,7 @@ export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick,
           <Button
             onClick={handleCheckin}
             variant="outline"
-            className="h-auto py-3 rounded-2xl bg-white border-none shadow-sm hover:shadow-md flex flex-col items-center gap-1.5"
+            className={cn("h-auto py-3 rounded-2xl border-none hover:shadow-md flex flex-col items-center gap-1.5", cardBg, cardShadow)}
           >
             <div className="w-9 h-9 bg-gelb/10 rounded-xl flex items-center justify-center">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F9B233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -283,7 +314,7 @@ export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick,
       <div className="px-5 mt-5">
         <h3 className="text-sm font-semibold text-navy mb-2">Tagesjournal</h3>
         {journal.length === 0 ? (
-          <p className="text-xs text-grau bg-white rounded-xl p-3 shadow-sm text-center">
+          <p className={cn("text-xs text-grau rounded-xl p-3 text-center", journalBg, cardShadow)}>
             Noch keine Einträge heute
           </p>
         ) : (
@@ -291,7 +322,7 @@ export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick,
             {journal.map((entry) => (
               <div
                 key={entry.id}
-                className="bg-white rounded-xl px-3 py-2 shadow-sm flex items-start gap-2"
+                className={cn("rounded-xl px-3 py-2 flex items-start gap-2", journalBg, cardShadow)}
               >
                 <div
                   className={cn(
@@ -352,14 +383,71 @@ export function KindDetailPanel({ child, onClose, onCheckin, onCheckout, onSick,
           {child.guardians.map((g) => (
             <div
               key={g.id}
-              className="bg-white rounded-xl px-3 py-2 shadow-sm"
+              className={cn("rounded-xl px-3 py-2.5 flex items-center gap-3", journalBg, cardShadow)}
             >
-              <p className="text-xs font-medium text-navy">{g.name}</p>
-              <p className="text-[10px] text-grau">{g.relation} · {g.phone}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-navy">{g.name}</p>
+                <p className="text-[10px] text-grau">{g.relation} · {g.phone}</p>
+              </div>
+              <div className="flex gap-1.5 shrink-0">
+                {/* Telefon */}
+                <button
+                  onClick={() => setCallInfo({ name: g.name, phone: g.phone })}
+                  className="w-8 h-8 rounded-lg bg-gruen/10 flex items-center justify-center text-gruen hover:bg-gruen/20 transition-colors"
+                  aria-label={`${g.name} anrufen`}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                </button>
+                {/* Nachricht */}
+                <Link
+                  href={`/kind/${child.id}/chat`}
+                  onClick={() => onClose?.()}
+                  className="w-8 h-8 rounded-lg bg-blau/10 flex items-center justify-center text-blau hover:bg-blau/20 transition-colors"
+                  aria-label={`${g.name} Nachricht senden`}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </Link>
+              </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Anruf-Simulation Modal */}
+      <Sheet open={callInfo !== null} onOpenChange={(open) => !open && setCallInfo(null)}>
+        <SheetContent side="bottom" className="rounded-t-3xl bg-white border-none shadow-lg px-6 pb-8">
+          <SheetHeader className="p-0 pt-2 pb-0">
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+            <SheetTitle className="text-xl font-bold text-navy text-center">
+              Anruf
+            </SheetTitle>
+          </SheetHeader>
+          {callInfo && (
+            <div className="text-center py-6 space-y-4">
+              <div className="w-16 h-16 mx-auto bg-gruen/10 rounded-full flex items-center justify-center">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3FA46A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-navy">{callInfo.name}</p>
+                <p className="text-sm text-grau">{callInfo.phone}</p>
+              </div>
+              <p className="text-sm text-gruen font-medium">Anruf wird gestartet...</p>
+              <Button
+                onClick={() => setCallInfo(null)}
+                className="bg-rot hover:bg-rot/90 text-white font-semibold rounded-xl h-12 px-8"
+              >
+                Auflegen
+              </Button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Link to full detail page */}
       <div className="px-5 mt-5 pb-8">

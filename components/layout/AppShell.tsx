@@ -39,7 +39,7 @@ export function AppShell({ children }: AppShellProps) {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 px-6 pb-20 flex-1 min-h-0">
+      <main className="relative z-10 px-6 pb-20 flex-1 min-h-0 overflow-y-auto">
         <div className="max-w-7xl mx-auto h-full">{children}</div>
       </main>
     </div>

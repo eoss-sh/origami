@@ -11,6 +11,7 @@ import { KindDetailPanel } from "@/components/KindDetailPanel";
 import { CheckinDialog } from "@/components/CheckinDialog";
 import { CheckoutDialog } from "@/components/CheckoutDialog";
 import { KrankmeldungDialog } from "@/components/KrankmeldungDialog";
+import { AllergienDialog } from "@/components/AllergienDialog";
 import { OrigamiIcon } from "@/components/OrigamiIcon";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -57,6 +58,8 @@ export default function HomePage() {
   const [sickChild, setSickChild] = useState<Child | null>(null);
   const [sickOpen, setSickOpen] = useState(false);
   const [widgetDrawer, setWidgetDrawer] = useState<"sick" | "allergies" | null>(null);
+  const [allergyChild, setAllergyChild] = useState<Child | null>(null);
+  const [allergyOpen, setAllergyOpen] = useState(false);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const filtered = getFilteredChildren();
@@ -101,6 +104,11 @@ export default function HomePage() {
   const handleSick = (child: Child) => {
     setSickChild(child);
     setSickOpen(true);
+  };
+
+  const handleAllergies = (child: Child) => {
+    setAllergyChild(child);
+    setAllergyOpen(true);
   };
 
   const scrollToChild = useCallback((childId: string) => {
@@ -302,7 +310,7 @@ export default function HomePage() {
 
         {/* Right column: Detail panel (pinned) */}
         {showPanel && (
-          <div className="hidden lg:block lg:w-[420px] lg:shrink-0 lg:overflow-y-auto rounded-2xl">
+          <div className="hidden lg:block lg:w-[420px] lg:shrink-0 lg:overflow-y-auto rounded-2xl bg-white shadow-sm">
             {selectedChild ? (
               <KindDetailPanel
                 key={selectedChild.id}
@@ -310,8 +318,10 @@ export default function HomePage() {
                 onCheckin={handleCheckin}
                 onCheckout={handleCheckout}
                 onSick={handleSick}
+                onAllergies={handleAllergies}
                 pinned={pinned}
                 onTogglePin={togglePinned}
+                variant="inverted"
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-grau">
@@ -337,6 +347,7 @@ export default function HomePage() {
           onCheckin={handleCheckin}
           onCheckout={handleCheckout}
           onSick={handleSick}
+          onAllergies={handleAllergies}
           pinned={pinned}
           onTogglePin={isDesktop ? togglePinned : undefined}
         />
@@ -349,7 +360,13 @@ export default function HomePage() {
           colorLabel={checkinCode.colorLabel}
           figureLabel={checkinCode.figureLabel}
           open={checkinOpen}
-          onOpenChange={setCheckinOpen}
+          onOpenChange={(open) => {
+            setCheckinOpen(open);
+            if (!open && checkinChild) {
+              setSelectedChild(checkinChild);
+              scrollToChild(checkinChild.id);
+            }
+          }}
         />
       )}
 
@@ -358,7 +375,13 @@ export default function HomePage() {
         <CheckoutDialog
           child={checkoutChild}
           open={checkoutOpen}
-          onOpenChange={setCheckoutOpen}
+          onOpenChange={(open) => {
+            setCheckoutOpen(open);
+            if (!open && checkoutChild) {
+              setSelectedChild(checkoutChild);
+              scrollToChild(checkoutChild.id);
+            }
+          }}
         />
       )}
 
@@ -368,6 +391,15 @@ export default function HomePage() {
           child={sickChild}
           open={sickOpen}
           onOpenChange={handleSickOpenChange}
+        />
+      )}
+
+      {/* Allergien Bottom Drawer */}
+      {allergyChild && (
+        <AllergienDialog
+          child={allergyChild}
+          open={allergyOpen}
+          onOpenChange={setAllergyOpen}
         />
       )}
 
