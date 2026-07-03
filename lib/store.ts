@@ -413,6 +413,25 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
       });
 
+    // Note entries (system messages starting with "Notiz:")
+    state.messages
+      .filter(
+        (m) =>
+          m.childId === childId &&
+          m.direction === "system" &&
+          m.body.startsWith("Notiz:")
+      )
+      .forEach((m) => {
+        entries.push({
+          id: `j-${m.id}`,
+          childId,
+          date: TODAY,
+          kind: "message",
+          description: m.body,
+          timestamp: m.createdAt,
+        });
+      });
+
     return entries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   },
 

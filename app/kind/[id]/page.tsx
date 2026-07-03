@@ -294,9 +294,16 @@ export default function KindDetailPage({
                         entry.kind === "sick" && "bg-rot/10",
                         entry.kind === "pickup_request" && "bg-gelb/10",
                         entry.kind === "pickup_confirmed" && "bg-gruen/10",
-                        entry.kind === "code_failed" && "bg-rot/10"
+                        entry.kind === "code_failed" && "bg-rot/10",
+                        entry.kind === "message" && "bg-navy/10"
                       )}
                     >
+                      {entry.kind === "message" && (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#14243A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                        </svg>
+                      )}
                       {entry.kind === "checkin" && (
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3FA46A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
