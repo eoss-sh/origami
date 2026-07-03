@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { AppShell } from "@/components/layout/AppShell";
 import { KindKarte } from "@/components/KindKarte";
+import { KindDrawer } from "@/components/KindDrawer";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { GroupFilter } from "@/types";
+import type { Child, GroupFilter } from "@/types";
 
 const FILTERS: { key: GroupFilter; label: string }[] = [
   { key: "alle", label: "Alle" },
@@ -25,10 +27,18 @@ export default function HomePage() {
     getPresentCount,
   } = useAppStore();
 
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const filtered = getFilteredChildren();
   const presentCount = getPresentCount();
   const totalCount = children.length;
   const progress = totalCount > 0 ? (presentCount / totalCount) * 100 : 0;
+
+  const handleSelectChild = (child: Child) => {
+    setSelectedChild(child);
+    setDrawerOpen(true);
+  };
 
   return (
     <AppShell>
@@ -93,10 +103,22 @@ export default function HomePage() {
           </div>
         ) : (
           filtered.map((child) => (
-            <KindKarte key={child.id} child={child} />
+            <KindKarte
+              key={child.id}
+              child={child}
+              onSelect={handleSelectChild}
+            />
           ))
         )}
       </div>
+
+      {/* Detail Drawer */}
+      <KindDrawer
+        key={selectedChild?.id}
+        child={selectedChild}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
     </AppShell>
   );
 }
