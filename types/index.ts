@@ -139,3 +139,10 @@ export interface JournalEntry {
 
 // Filter-Optionen für die Gruppenliste
 export type GroupFilter = "alle" | "hier" | "fehlt" | "allergien";
+
+// Gruppierte Kinder-Liste
+export interface ChildGroup {
+  key: "anwesend" | "abwesend" | "krank";
+  label: string;
+  children: Child[];
+}

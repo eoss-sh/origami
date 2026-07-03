@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type {
   Child,
+  ChildGroup,
   Attendance,
   Incident,
   Message,
@@ -60,6 +61,7 @@ interface AppState {
     temperature?: string,
     note?: string
   ) => void;
+  removeSickReport: (childId: string) => void;
   requestPickup: (childId: string) => void;
   updateIncidentStatus: (incidentId: string, status: IncidentStatus, eta?: string, person?: string) => void;
 
@@ -78,7 +80,9 @@ interface AppState {
   getUnreadCount: (childId: string) => number;
   getJournal: (childId: string) => JournalEntry[];
   getFilteredChildren: () => Child[];
+  getGroupedChildren: () => ChildGroup[];
   getPresentCount: () => number;
+  getTotalUnreadCount: () => number;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -207,6 +211,28 @@ export const useAppStore = create<AppState>((set, get) => ({
         childId,
         direction: "system",
         body: `Krankmeldung erfasst: ${child.firstName} – ${symptom}${temperature ? `, ${temperature}°C` : ""}`,
+        createdAt: now(),
+      };
+      set((s) => ({ messages: [...s.messages, msg] }));
+    }
+  },
+
+  removeSickReport: (childId) => {
+    const state = get();
+    const child = state.children.find((c) => c.id === childId);
+    set({
+      incidents: state.incidents.map((i) =>
+        i.childId === childId && i.type === "sick" && i.status !== "closed"
+          ? { ...i, status: "closed" as const, closedAt: now() }
+          : i
+      ),
+    });
+    if (child) {
+      const msg: Message = {
+        id: `msg-${generateId()}`,
+        childId,
+        direction: "system",
+        body: `Krankmeldung für ${child.firstName} aufgehoben`,
         createdAt: now(),
       };
       set((s) => ({ messages: [...s.messages, msg] }));
@@ -417,10 +443,57 @@ export const useAppStore = create<AppState>((set, get) => ({
       );
     }
 
+    // Sort: sick children (not checked in) to the end
+    filtered = [...filtered].sort((a, b) => {
+      const aSick = state.incidents.some(
+        (i) => i.childId === a.id && i.type === "sick" && i.status !== "closed"
+      ) && !state.isCheckedIn(a.id);
+      const bSick = state.incidents.some(
+        (i) => i.childId === b.id && i.type === "sick" && i.status !== "closed"
+      ) && !state.isCheckedIn(b.id);
+      if (aSick === bSick) return 0;
+      return aSick ? 1 : -1;
+    });
+
     return filtered;
+  },
+
+  getGroupedChildren: () => {
+    const state = get();
+    const filtered = state.getFilteredChildren();
+
+    const anwesend: Child[] = [];
+    const abwesend: Child[] = [];
+    const krank: Child[] = [];
+
+    for (const child of filtered) {
+      const checkedIn = state.isCheckedIn(child.id);
+      const isSick = state.incidents.some(
+        (i) => i.childId === child.id && i.type === "sick" && i.status !== "closed"
+      );
+
+      if (checkedIn) {
+        anwesend.push(child);
+      } else if (isSick) {
+        krank.push(child);
+      } else {
+        abwesend.push(child);
+      }
+    }
+
+    return ([
+      { key: "anwesend" as const, label: "Anwesend", children: anwesend },
+      { key: "abwesend" as const, label: "Abwesend", children: abwesend },
+      { key: "krank" as const, label: "Krank", children: krank },
+    ] satisfies ChildGroup[]).filter((g) => g.children.length > 0);
   },
 
   getPresentCount: () => {
     return get().children.filter((c) => get().isCheckedIn(c.id)).length;
+  },
+
+  getTotalUnreadCount: () => {
+    const state = get();
+    return state.children.reduce((sum, c) => sum + state.getUnreadCount(c.id), 0);
   },
 }));

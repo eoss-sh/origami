@@ -5,11 +5,11 @@ import type { Child, Symptom } from "@/types";
 import { SYMPTOM_LABELS } from "@/types";
 import { useAppStore } from "@/lib/store";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,8 @@ const SYMPTOMS: Symptom[] = ["fieber", "erbrechen", "durchfall", "ausschlag", "s
 type Step = "form" | "confirm" | "done";
 
 export function KrankmeldungDialog({ child, open, onOpenChange }: KrankmeldungDialogProps) {
-  const { addSickReport, requestPickup } = useAppStore();
+  const { addSickReport, requestPickup, isCheckedIn } = useAppStore();
+  const checkedIn = isCheckedIn(child.id);
   const [step, setStep] = useState<Step>("form");
   const [symptom, setSymptom] = useState<Symptom | null>(null);
   const [temperature, setTemperature] = useState("");
@@ -46,7 +47,8 @@ export function KrankmeldungDialog({ child, open, onOpenChange }: KrankmeldungDi
   const handleSubmit = () => {
     if (!symptom) return;
     addSickReport(child.id, symptom, temperature || undefined, note || undefined);
-    setStep("confirm");
+    // Kind nicht anwesend → keine Abholung nötig, direkt fertig
+    setStep(checkedIn ? "confirm" : "done");
   };
 
   const handleRequestPickup = () => {
@@ -70,13 +72,14 @@ export function KrankmeldungDialog({ child, open, onOpenChange }: KrankmeldungDi
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md bg-white rounded-3xl border-none shadow-lg">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-navy text-center">
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetContent side="bottom" className="rounded-t-3xl bg-white border-none shadow-lg px-6 pb-8">
+        <SheetHeader className="p-0 pt-2 pb-0">
+          <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+          <SheetTitle className="text-xl font-bold text-navy text-center">
             Krankmeldung – {child.firstName}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
         {/* Step: Form */}
         {step === "form" && (
@@ -174,19 +177,17 @@ export function KrankmeldungDialog({ child, open, onOpenChange }: KrankmeldungDi
         {/* Step: Done */}
         {step === "done" && (
           <div className="text-center py-6 space-y-5">
-            <div className="w-16 h-16 mx-auto bg-gelb/10 rounded-full flex items-center justify-center">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F9B233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 2L11 13" />
-                <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+            <div className="w-16 h-16 mx-auto bg-rot/10 rounded-full flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E74C3C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
               </svg>
             </div>
             <div className="space-y-2">
               <p className="text-lg font-bold text-navy">
-                Abholanfrage gesendet
+                Krankmeldung erfasst
               </p>
               <p className="text-sm text-grau">
-                {child.guardians.map((g) => g.name).join(", ")} wurde(n) benachrichtigt.
-                Die Antwort erscheint in der Übersicht.
+                {child.firstName} wurde als krank gemeldet.
               </p>
             </div>
             <Button
@@ -197,7 +198,7 @@ export function KrankmeldungDialog({ child, open, onOpenChange }: KrankmeldungDi
             </Button>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

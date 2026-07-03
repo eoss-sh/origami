@@ -5,11 +5,11 @@ import { CODE_COLORS } from "@/types";
 import { useAppStore } from "@/lib/store";
 import { OrigamiIcon } from "./OrigamiIcon";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 interface CheckinDialogProps {
@@ -33,13 +33,14 @@ export function CheckinDialog({
     : null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm bg-white rounded-3xl border-none shadow-lg">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-navy text-center">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="rounded-t-3xl bg-white border-none shadow-lg px-6 pb-8">
+        <SheetHeader className="p-0 pt-2 pb-0">
+          <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+          <SheetTitle className="text-xl font-bold text-navy text-center">
             {child.firstName} ist eingecheckt
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
         <div className="text-center py-4 space-y-5">
           <div
@@ -73,7 +74,7 @@ export function CheckinDialog({
             OK
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

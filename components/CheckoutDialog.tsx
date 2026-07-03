@@ -6,11 +6,11 @@ import { CODE_COLORS, FIGURE_LABELS } from "@/types";
 import { useAppStore } from "@/lib/store";
 import { OrigamiIcon } from "./OrigamiIcon";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -53,13 +53,14 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md bg-white rounded-3xl border-none shadow-lg">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-navy text-center">
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetContent side="bottom" className="rounded-t-3xl bg-white border-none shadow-lg px-6 pb-8">
+        <SheetHeader className="p-0 pt-2 pb-0">
+          <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+          <SheetTitle className="text-xl font-bold text-navy text-center">
             {child.firstName} auschecken
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
         {/* Step: Ask for code first */}
         {step === "ask" && (
@@ -223,7 +224,7 @@ export function CheckoutDialog({ child, open, onOpenChange }: CheckoutDialogProp
             </Button>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
