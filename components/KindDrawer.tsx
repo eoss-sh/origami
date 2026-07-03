@@ -17,9 +17,11 @@ interface KindDrawerProps {
   onCheckin?: (child: Child, result: { colorLabel: string; figureLabel: string }) => void;
   onCheckout?: (child: Child) => void;
   onSick?: (child: Child) => void;
+  pinned?: boolean;
+  onTogglePin?: () => void;
 }
 
-export function KindDrawer({ child, open, onOpenChange, onCheckin, onCheckout, onSick }: KindDrawerProps) {
+export function KindDrawer({ child, open, onOpenChange, onCheckin, onCheckout, onSick, pinned, onTogglePin }: KindDrawerProps) {
   if (!child) return null;
 
   return (
@@ -45,6 +47,8 @@ export function KindDrawer({ child, open, onOpenChange, onCheckin, onCheckout, o
           onCheckin={onCheckin}
           onCheckout={onCheckout}
           onSick={onSick}
+          pinned={pinned}
+          onTogglePin={onTogglePin}
         />
       </SheetContent>
     </Sheet>

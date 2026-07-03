@@ -257,37 +257,6 @@ export default function HomePage() {
               </button>
             ))}
 
-            {/* Pin toggle (desktop only) */}
-            {isDesktop && (
-              <button
-                onClick={togglePinned}
-                className={cn(
-                  "ml-auto p-2 rounded-xl transition-colors",
-                  pinned
-                    ? "bg-gelb/15 text-gelb"
-                    : "bg-white text-grau hover:text-navy"
-                )}
-                aria-label={pinned ? "Detailpanel lösen" : "Detailpanel fixieren"}
-                title={pinned ? "Detailpanel lösen" : "Detailpanel fixieren"}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  {pinned ? (
-                    /* Pinned: sidebar icon filled */
-                    <>
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <path d="M15 3v18" />
-                      <path d="M9 9l3 3-3 3" />
-                    </>
-                  ) : (
-                    /* Unpinned: sidebar icon */
-                    <>
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <path d="M15 3v18" />
-                    </>
-                  )}
-                </svg>
-              </button>
-            )}
           </div>
 
           {/* Children List */}
@@ -341,6 +310,8 @@ export default function HomePage() {
                 onCheckin={handleCheckin}
                 onCheckout={handleCheckout}
                 onSick={handleSick}
+                pinned={pinned}
+                onTogglePin={togglePinned}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-grau">
@@ -366,6 +337,8 @@ export default function HomePage() {
           onCheckin={handleCheckin}
           onCheckout={handleCheckout}
           onSick={handleSick}
+          pinned={pinned}
+          onTogglePin={isDesktop ? togglePinned : undefined}
         />
       )}
 
