@@ -61,6 +61,7 @@ export default function HomePage() {
   const [allergyChild, setAllergyChild] = useState<Child | null>(null);
   const [allergyOpen, setAllergyOpen] = useState(false);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const listRef = useRef<HTMLDivElement>(null);
 
   const filtered = getFilteredChildren();
   const groups = getGroupedChildren();
@@ -114,7 +115,12 @@ export default function HomePage() {
   const scrollToChild = useCallback((childId: string) => {
     setTimeout(() => {
       const el = cardRefs.current.get(childId);
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const container = listRef.current;
+      if (!el || !container) return;
+      const elRect = el.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const scrollTarget = container.scrollTop + (elRect.top - containerRect.top) - containerRect.height / 2 + elRect.height / 2;
+      container.scrollTo({ top: scrollTarget, behavior: "smooth" });
     }, 800);
   }, []);
 
@@ -149,9 +155,9 @@ export default function HomePage() {
 
   return (
     <AppShell>
-      <div className="lg:flex lg:gap-6 h-full">
+      <div className={showPanel ? "flex gap-6 h-full overflow-hidden" : ""}>
         {/* Left column: List */}
-        <div className="lg:flex-1 lg:min-w-0 lg:overflow-y-auto lg:pr-2 h-full">
+        <div ref={listRef} className={showPanel ? "flex-1 min-w-0 min-h-0 overflow-y-auto pr-2" : ""}>
           {/* Attendance Summary */}
           <div className="mb-6">
             <h2 className="text-3xl font-extrabold text-navy mb-3">
@@ -310,7 +316,7 @@ export default function HomePage() {
 
         {/* Right column: Detail panel (pinned) */}
         {showPanel && (
-          <div className="hidden lg:block lg:w-[420px] lg:shrink-0 lg:overflow-y-auto rounded-2xl bg-white shadow-sm">
+          <div className="w-[420px] shrink-0 min-h-0 overflow-y-auto rounded-2xl bg-white shadow-sm">
             {selectedChild ? (
               <KindDetailPanel
                 key={selectedChild.id}

@@ -15,7 +15,7 @@ export function AppShell({ children }: AppShellProps) {
   });
 
   return (
-    <div className="h-screen bg-creme relative overflow-hidden flex flex-col">
+    <div className="h-full bg-creme relative overflow-hidden flex flex-col">
       {/* Decorative blob */}
       <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-gelb/15 pointer-events-none" />
       <div className="absolute top-40 -left-32 w-64 h-64 rounded-full bg-gelb/8 pointer-events-none" />

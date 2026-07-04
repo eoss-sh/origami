@@ -35,7 +35,7 @@ export function TabletFrame({ children }: TabletFrameProps) {
           className="absolute inset-[12px] top-[12px] rounded-[2rem] overflow-hidden bg-creme"
           style={{ transform: "scale(1)" }}
         >
-          <div className="w-full h-full overflow-auto relative">
+          <div className="w-full h-full relative flex flex-col overflow-hidden">
             <PortalContainerProvider containerRef={screenRef}>
               {children}
             </PortalContainerProvider>
